@@ -361,7 +361,6 @@ class GenerateDataSet():
 
         driver.close()
 
-
 if __name__=='__main__':
 
     tipos=['A pie de playa', 'En el campo','Cabañas']
@@ -377,7 +376,4 @@ if __name__=='__main__':
 
     #Generamos el dataset de comentarios
     #-------
-    dataset.apart_val()
-
-
-
+    #dataset.apart_val()
