@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import numpy as np
 import undetected_chromedriver as uc
+from progress.bar import ChargingBar
 
 
 def ubi(x):
@@ -96,7 +97,12 @@ def transform(data):
     return data
 
 class ManualImputer():
+    """
+    Clase encargada de la imputacion de valores nulos de forma manual por parte del usuario.
+    """
+
     def __init__(self,dataframe):
+        
         self.airbnb='https://www.airbnb.es'
         self.data=dataframe
     
@@ -126,21 +132,65 @@ class ManualImputer():
         
         return driver
     
-    def value_impute(self,col,driver):
+    def value_impute(self,col,driver,tipo):
+        """
+        Funcion encargada de iterar sobre los valores nulos solicitando el valor a introducir a el usuario
+
+        Args:
+            col (string): Nombre de la columna
+            driver (WebDriver): Webdriver de googleChrome
+            tipo (type): Tipo de dato correspondiente a la columna
+        """
+        try:
+            indices_nulos = self.data[self.data[col].isnull()].index
+
+            bar2 = ChargingBar('\nRellenando Huecos:', max=len(indices_nulos))
+            for ind in indices_nulos:
+                bar2.next()
+                driver.get(self.data.at[ind,'URL'])
+
+                value=tipo(input(f'\nIntroduce el valor para la columna {col}: '))
+                
+                self.data.at[ind,col]=value
+            
+            bar2.finish()
+        
+        except:
+            print('La columna indicada no existe')
         pass
+
+    def manual_imputer(self,columnas):
+        """
+        Funcion encargada de la iteracion sobre los pares columna: tipo de dato
+
+        Args:
+            columnas (dict): Diccionario con el nombre de las columnas como clave y el tipo de dato como valore
+
+        Returns:
+            pd.DataFrame: DataFrame con la imputacion de valores nulos 
+        """
+        driver=self.iniciar_wd()
+        for col,tipo in columnas.items():
+            self.value_impute(col,driver,tipo)
+        
+        return self.data
+    
+
 
 if __name__=='__main__':
 
     ruta_dataset='../../Dataset_Apart/Raw/DatasetAirbnb_v1.csv'
-    version=1
+
+    version=1.2
 
     data=pd.read_csv(ruta_dataset)
 
     data=transform(data)
 
     #   Hacemos la imputacion manual en caso de ser necesaria
-    #columnas=['Precio']
+    #columnas={'Precio':float}
     #imputer=ManualImputer(data)
+    #data=imputer.manual_imputer(columnas)
 
 
     data.to_csv(f'../../Dataset_Apart/Cleaned/DatasetAirbnb_Cleaned_v{version}.csv',index=False)
