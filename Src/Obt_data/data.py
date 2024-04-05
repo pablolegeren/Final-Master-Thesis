@@ -224,7 +224,7 @@ class GenerateDataSet():
             
         return tit,desc_s,info,evaluaciones,precio,limp,vera,lleg,com,ub,cal,serv,local
     
-    def apart_info(self):
+    def apart_info(self,version):
         """_summary_
         """
         try:
@@ -252,7 +252,7 @@ class GenerateDataSet():
             
             #Guardamos la informacion en un csv
             result=pd.DataFrame(self.datos,columns=self.claves)
-            result.to_csv('DatasetAirbnb.csv',index=False)
+            result.to_csv(f'DatasetAirbnb_v{version}.csv',index=False)
 
             bar2.finish()     
             driver.close()
@@ -372,7 +372,8 @@ if __name__=='__main__':
 
     #Generamos el dataset de informacion de apartamentos
     #------
-    #dataset.apart_info()
+    #version=2
+    #dataset.apart_info(version)
 
     #Generamos el dataset de comentarios
     #-------
