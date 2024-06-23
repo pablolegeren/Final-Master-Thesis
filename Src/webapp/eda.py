@@ -95,10 +95,16 @@ def price_part(data_apart):
     st.markdown('''El precio medio de los apartamentos de tipo "En el campo" es el más elevado.''')
     st.bar_chart(data_apart.groupby('Tipo').agg({'Precio':'mean'}).reset_index(),x='Tipo',y='Precio')
 
-    st.subheader('Relación entre el precio y la capacidad del apartamento')
+    st.subheader('Relación entre el precio y la calidad del apartamento')
     st.markdown('''El gráfico demuetra que según los datos no existe una relación directa entre la calidad percibida por los cliente y el precio lo cual es sorprendete ya que una de las hipótesis que se bajaraba era que a 
                 mayor precio mayor calidad.''')
     st.scatter_chart(data_apart,x='Precio',y='Calidad')
+
+    st.subheader('Relación entre el precio y la capacidad del apartamento')
+    st.markdown('''El gráfico demuetra que según los datos existe claramente una relacion creciente ente la capacidad de huéspedes y el precio.
+                Esta conclusion valida una de las hipótesis principales que a mayor tamaño mayor precio.''')
+    datos_cap=data_apart.groupby('Capacidad').agg({'Precio':'mean'}).reset_index()
+    st.line_chart(datos_cap,x='Capacidad',y='Precio')
 
 def clustering(data_apart):
     columnas_innecesarias_cluster=['ID','Titulo','Descripcion Simple','URL','url_img','Localizacion']
@@ -123,7 +129,7 @@ def clustering(data_apart):
                 empleamos el método de la silueta y calinski harabasz.''')
     
     st.subheader('Silueta y Calinski Harabasz')
-    for k in [3,4,5]:
+    for k in [3,4,5,6,7,8]:
         kmeans = KMeans(n_clusters=k, n_init= 'auto', random_state=10, max_iter=3000)
         Y_pred=kmeans.fit_predict(data_cluster) # Vector de asignación de etiquetas predichas para cada elemento
         data_cluster['id_cluster']=kmeans.labels_
@@ -134,7 +140,7 @@ def clustering(data_apart):
         st.write('- S: ',silhouette_avg)
         st.write('- CH: ',cal)
         st.write('-'*50)
-        st.markdown('''Observamos que según silueta el numero de clusters optimos es 3 y según calinski harabasz es 5.
+        st.markdown('''Observamos que según silueta el numero de clusters optimos es 3 y según calinski harabasz es 8.
                     Por lo tanto, realizamos un estudio para ambos valores.''')
     col_clust1,col_clust2=st.columns(2)
     with col_clust1:
@@ -154,8 +160,8 @@ def clustering(data_apart):
 - Existe un apartamento con caracteristicas muy diferentes al resto.''')
         
     with col_clust2:
-        st.header('Clustering con 5 clusters')
-        k_val=5
+        st.header('Clustering con 8 clusters')
+        k_val=8
         kmeans = KMeans(n_clusters=k_val, n_init= 'auto', random_state=10, max_iter=3000)
         Y_pred=kmeans.fit_predict(data_cluster) # Vector de asignación de etiquetas predichas para cada elemento
         data_cluster['id_cluster']=kmeans.labels_
@@ -165,7 +171,8 @@ def clustering(data_apart):
             sns.boxplot(data_cluster,x=col,hue='id_cluster',ax=ax)
             st.pyplot(fig)
         st.bar_chart(data_cluster['id_cluster'].value_counts().reset_index(),x='id_cluster',y='count')
-        st.markdown('''Conclusiones:                   
+        st.markdown('''Conclusiones:
+- FALTA CARACTERIZAR BIEN LOS CLUSTERS!!!                   
 - Existe un problema con el desbalanceo de tamaño de los clusters.
 - Uno de los grupos de corresponde a apartamentos con un precio medio mas elevado que el resto y cuya capacidad de huéspedes es considerablemente superior al resto, este
 grupo de apartamentos además cuentan con todas las comodidades posibles (Wifi,Mascotas,Piscina...).

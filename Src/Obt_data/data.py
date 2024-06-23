@@ -64,7 +64,7 @@ class GenerateDataSet():
         
         return driver
     
-    def get_url(self,tipos):
+    def get_url(self,tipos,max_apart=None):
         """
         Función encargada de obtener las urls de los apartamentos en función del tipo de apartamento.
 
@@ -80,6 +80,7 @@ class GenerateDataSet():
         driver=self.iniciar_wd()
         driver.get(self.url_airbnb)
         time.sleep(15)  #Espera mientras clicamos por primera vez el boton de mostrar mas
+        total_urls=0
 
         result={}
         for o in tipos:
@@ -121,20 +122,19 @@ class GenerateDataSet():
                 
                 if en.find('/rooms')!=-1:
                     res.append(f'https://www.airbnb.es{en}')
-            
-            result[o]=list(set(res))
+                    total_urls+=1
+            result[o]=list(set(res))[:max_apart]
         
         driver.close()
         return result
     
-    def apart_urls(self):
+    def apart_urls(self,max_apart=None):
         """
         Función encargada de la generación del archivo con las urls de los apartamentos.
         """
-        res=self.get_url(self.tipos)
-        with open('urls.json','w') as jsonfile:
-            json.dump(res,jsonfile)
-        jsonfile.close()
+        res=self.get_url(self.tipos,max_apart=max_apart)
+        return res
+
 
     def get_info_apart(self,url,driver):
         """
@@ -224,12 +224,11 @@ class GenerateDataSet():
             
         return tit,desc_s,info,evaluaciones,precio,limp,vera,lleg,com,ub,cal,serv,local
     
-    def apart_info(self,version):
+    def apart_info(self,version,data):
         """_summary_
         """
         try:
-            with open('urls.json','r') as jsonfile:
-                data=json.load(jsonfile)
+            
             driver=self.iniciar_wd(headless=True)
             
             self.datos = {clave:[] for clave in self.claves}
@@ -252,11 +251,10 @@ class GenerateDataSet():
             
             #Guardamos la informacion en un csv
             result=pd.DataFrame(self.datos,columns=self.claves)
-            result.to_csv(f'DatasetAirbnb_v{version}.csv',index=False)
-
             bar2.finish()     
             driver.close()
             print('FINALIZADO!!')
+            return result
         except:
             print('No se ha encontrado el archivo urls.json')
     
@@ -331,14 +329,9 @@ class GenerateDataSet():
         
         return data
     
-    def apart_val(self):
+    def apart_val(self,data):
         """_summary_
         """
-        try:
-            with open('urls.json','r') as jsonfile:
-                data=json.load(jsonfile)
-        except:
-            print('No se ha encontrado el archivo urls.json')
 
         driver=self.iniciar_wd()
 
@@ -356,10 +349,8 @@ class GenerateDataSet():
                 datos=self.get_val_apart(driver,url,datos)
         bar3.finish() 
         data=pd.DataFrame(datos,columns=self.claves_eval)
-
-        data.to_csv('../../Dataset_Review/Raw/CommentDataset_v2.csv',index=False)
-
         driver.close()
+        return data
 
 if __name__=='__main__':
 
@@ -368,13 +359,19 @@ if __name__=='__main__':
 
     #Generamos el archivo de urls
     #------
-    #dataset.apart_urls()    #Comenta esta linea si ya tienes un archivo url.json en este directorio
-
+    res = dataset.apart_urls()    #Comenta esta linea si ya tienes un archivo url.json en este directorio
+    with open('urls.json','w') as jsonfile:
+        json.dump(res,jsonfile)
+    jsonfile.close()
     #Generamos el dataset de informacion de apartamentos
     #------
-    #version=2
-    #dataset.apart_info(version)
+    with open('urls.json','r') as jsonfile:
+        data=json.load(jsonfile)
+    version=2
+    result=dataset.apart_info(version=version,data=data)
+    result.to_csv(f'DatasetAirbnb_v{version}.csv',index=False)
 
     #Generamos el dataset de comentarios
     #-------
-    #dataset.apart_val()
+    data=dataset.apart_val(data)
+    data.to_csv(f'../../Dataset_Review/Raw/CommentDataset_v{version}.csv',index=False)

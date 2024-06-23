@@ -1,8 +1,4 @@
 import streamlit as st
-from PIL import Image
-import pandas as pd
-import numpy as np
-from st_clickable_images import clickable_images
 from env.env import *
 
 class App():
@@ -14,8 +10,9 @@ class App():
         home_page = st.Page("webapp/home.py", title="Home", icon=":material/home:")
         eda_page = st.Page("webapp/eda.py", title="EDA", icon=":material/add_circle:")
         limp_page = st.Page("webapp/clean.py", title="Limpieza", icon=":material/delete:")
+        data_gen_page= st.Page("webapp/data_gen.py", title="Generación de datos", icon=":material/emoji_people:")
 
-        pg = st.navigation([home_page,eda_page, limp_page])
+        pg = st.navigation([home_page,eda_page, limp_page,data_gen_page])
         pg.run()
 
 
