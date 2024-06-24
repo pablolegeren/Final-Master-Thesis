@@ -33,9 +33,9 @@ class GenerateDataSet():
         self.pat_cal=r'^(Calidad)[0-9],[0-9]$'
         self.pattern_eval=r'^[0-9]+\s(evaluaciones)$'
         self.pattern_price=r'[0-9]+\s(€)\s$'
-        self.claves = ["ids", "titulos", "desc_sen", "informacion", "eval", "tipo", "precios", "enlaces", 
-                    "limpieza", "veracidad", "llegada", "comunicacion", "ubicacion", "calidad", 
-                    "servicios", "localizacion"]
+        self.claves = ["ID", "Titulo", "Descripcion Simple", "Informacion", "Evaluaciones", "Tipo", "Precio", "URL", 
+                    "Limpieza", "Veracidad", "Llegada", "Comunicacion", "Ubicacion", "Calidad", 
+                    "Servicios", "Localizacion"]
         self.claves_eval=['name','imagen','user_id','valoracion','comentario','apart_id','ubicacion']
 
     def iniciar_wd(self,headless=False):

@@ -5,6 +5,8 @@ import re
 import numpy as np
 import undetected_chromedriver as uc
 from progress.bar import ChargingBar
+from geopy.geocoders import Nominatim
+from sklearn.impute import SimpleImputer
 
 
 def ubi(x):
@@ -93,6 +95,26 @@ def transform(data):
     #Eliminacion de columnas sobrantes
     #-----------
     data.drop(['Informacion','Servicios'],axis=1,inplace=True)
+    def lat_log(l):
+        geolocator = Nominatim(user_agent="España")
+        try:
+            location = geolocator.geocode(l)
+            latitude = location.latitude
+            longitude = location.longitude
+            return latitude, longitude
+        except:
+            return 10000,10000
+    data['Latitud_Longitud']=data['Localizacion'].apply(lambda x: lat_log(x))
+    data['Latitud']=data['Latitud_Longitud'].apply(lambda x: x[0])
+    data['Longitud']=data['Latitud_Longitud'].apply(lambda x: x[1])
+    data.drop('Latitud_Longitud',axis=1,inplace=True)
+    imputer = SimpleImputer(strategy='mean')
+    imputer_cat = SimpleImputer(strategy='most_frequent')
+    cols_cat=['Wifi','Mascotas','Piscina','Parking']
+    columnas_categoricas=data.select_dtypes(include='object').columns
+    not_cat=[col for col in data.columns if col not in cols_cat and col not in list(set(columnas_categoricas).union(set(cols_cat)))]
+    data[cols_cat]=imputer_cat.fit_transform(data[cols_cat])
+    data[not_cat]=imputer.fit_transform(data[not_cat])
     
     return data
 

@@ -12,7 +12,7 @@ col1,col2=st.columns([.7,.3])
 with col1:
     st.session_state.maximo=st.number_input('Número de registros',min_value=0,value=0,key='n_reg')
     data_version=st.number_input('Versión del dataset',min_value=0,value=0,key='n_vers')
-    tipos_elegidos=st.multiselect('Tipo de apartamento',options=['A pie de playa', 'En el campo','Cabañas'],key='tipos')
+    tipos_elegidos=st.multiselect('Tipo de apartamento',options=['A pie de playa', 'Casas rurales','Cabañas'],key='tipos')
     coments=st.checkbox('Mostrar comentarios',key='coments')
     datagen_class=GenerateDataSet(tipos_elegidos)
     if st.button('Generar dataset',key='gen'):
