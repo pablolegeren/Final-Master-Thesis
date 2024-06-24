@@ -5,12 +5,55 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
+import requests
+import json
+
+def upload_file(cdn_path,bytes,file_name=None):
+        
+        if(cdn_path[-1]=='/'):
+            cdn_path=cdn_path[:-1]
+
+        request_url=st.session_state.base_url+cdn_path
+
+        response=requests.request("PUT",request_url,data=bytes,headers=st.session_state.headers)
+
+        return(response.json())
+
+def get_file(cdn_path,download_path=None):
+    if(cdn_path[-1]=='/'):
+        cdn_path=cdn_path[:-1]
+
+    filename=cdn_path.split('/')[-1]
+
+    request_url=st.session_state.base_url+cdn_path
+    response = requests.request("GET", request_url, headers=st.session_state.headers)
+    
+    if(response.status_code==404):
+        raise ValueError('No such file exists')
+
+    if(response.status_code!=200):
+        raise Exception('Some error, please check all settings once and retry')
+
+    if(download_path==None):
+        download_path=filename
+
+    return response.content.decode('utf-8')
 
 def inicializacion():
     for elem in PARAMETROS_INICIALES.keys():
         if elem not in st.session_state:
             st.session_state[elem]=PARAMETROS_INICIALES[elem]
+    st.session_state.headers={
+        'AccessKey': st.session_state.api_key
+    }
 
+    if(st.session_state.storage_zone_region=='de' or st.session_state.storage_zone_region==''):
+        st.session_state.base_url='https://storage.bunnycdn.com/'+st.session_state.storage_zone+'/'
+
+    else:
+        st.session_state.base_url='https://'+st.session_state.storage_zone_region+'.storage.bunnycdn.com/'+st.session_state.storage_zone+'/'
+
+    print('Probando url:',st.session_state.base_url)
 def inicio():
     st.markdown("<h1 style='text-align: center;'>RECOMENDADOR AIRBNB</h1>", unsafe_allow_html=True)
     st.markdown('---')
@@ -163,13 +206,11 @@ def pag_central(data_apart):
 
     st.write('#### **Cabañas**')
     recom_cabaña=recom_ordered[recom_ordered['Tipo']==1.0]
-    print(recom_cabaña.columns)
     if recom_cabaña.shape[0]<4:
         cab_popu=recomendar_populares(condicion=1.0)
         cab_popu.drop(['Puntuacion_Popularidad'],axis=1,inplace=True)
         recom_cabaña=pd.concat([recom_cabaña,cab_popu],axis=0)
     
-    print(recom_cabaña.head())
     items_5=[{'image':elem[-4], 'text':elem[2],'Rating':elem[-1],'ubi':elem[14],'url_apart':elem[7]} for elem in recom_cabaña.iloc[:4].itertuples()]
     display_images_with_text(items_5)
 
@@ -219,4 +260,16 @@ inicializacion()
 if st.session_state.iteraciones<=5:
     inicio()
 else:
+    data_usuarios=get_file('usuarios.json','user.json')
+    print(data_usuarios)
+    info_user=json.loads(data_usuarios)
+    ids=','.join([f'{elem}' for elem in st.session_state.ids])
+    print(ids)
+    info_user[st.session_state.user_id]=ids
+    info_user = {k: (int(v) if isinstance(v, np.int64) else v) for k, v in info_user.items()}
+    json_str = json.dumps(info_user)
+    # Convertir la cadena JSON a bytes
+    bytes_obj = json_str.encode('utf-8')
+    respuesta=upload_file('usuarios.json',bytes=bytes_obj)
+    print(respuesta)
     pag_central(data_apart=pd.read_csv('Dataset_Apart/Cleaned/DatasetAirbnb_Cleaned_v1.csv'))
