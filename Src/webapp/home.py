@@ -53,7 +53,6 @@ def inicializacion():
     else:
         st.session_state.base_url='https://'+st.session_state.storage_zone_region+'.storage.bunnycdn.com/'+st.session_state.storage_zone+'/'
 
-    print('Probando url:',st.session_state.base_url)
 def inicio():
     st.markdown("<h1 style='text-align: center;'>RECOMENDADOR AIRBNB</h1>", unsafe_allow_html=True)
     st.markdown('---')
