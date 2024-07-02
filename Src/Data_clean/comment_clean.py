@@ -13,7 +13,7 @@ import gender_guesser.detector as gender
 
 import re
 
-reviews = pd.read_csv('CommentDataset_v1.csv')
+reviews = pd.read_csv('CommentDataset_v2.csv')
 
 d = gender.Detector(case_sensitive=False)
 

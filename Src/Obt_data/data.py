@@ -295,13 +295,15 @@ class GenerateDataSet():
 
             soup=BeautifulSoup(driver.page_source,'html.parser')
             revs=soup.find_all('div', {'data-review-id': True})
-            apart_id=hash(url)
+            apart_id=url
             for r in revs:
                 try:
                     ubi_div=r.find('div', id=lambda value: value and 'review' in value)
                     ubi=ubi_div.find('div').text
-
-                    name=r.find_all('h3')[0].text
+                    try:
+                        name=r.find_all('h2')[0].text
+                    except:
+                        name=''
                     photo=r.find_all('img')[0].get('src')
                     id_user=hash(photo)
                     val=r.find_all('span')[0].text
@@ -320,10 +322,12 @@ class GenerateDataSet():
                     data['user_id'].append(id_user)
                     data['valoracion'].append(val)
                     data['comentario'].append(coment)
-                    data['apart_id'].append(apart_id)
+                    data['apart_id'].append(url)
                     data['ubicacion'].append(ubi)
+                    print('ID_apart: ',data['apar_id'])
                 except:
                     pass
+            data.to_csv(f'../../Dataset_Review/Raw/CommentDataset_v{version}.csv',index=False)
         except:
             pass
         
@@ -347,6 +351,9 @@ class GenerateDataSet():
             for url in data[k]:
                 bar3.next()
                 datos=self.get_val_apart(driver,url,datos)
+                print(datos)
+                print('Dataframe: ',pd.DataFrame(datos,columns=self.claves_eval))
+                data_inter=pd.DataFrame(datos,columns=self.claves_eval).to_csv('/Users/mariolamas/Desktop/Social-Network-Analysis/Dataset_Review/Raw/CommentDataset_v2.csv')
         bar3.finish() 
         data=pd.DataFrame(datos,columns=self.claves_eval)
         driver.close()
@@ -359,17 +366,17 @@ if __name__=='__main__':
 
     #Generamos el archivo de urls
     #------
-    res = dataset.apart_urls()    #Comenta esta linea si ya tienes un archivo url.json en este directorio
-    with open('urls.json','w') as jsonfile:
-        json.dump(res,jsonfile)
-    jsonfile.close()
+    #res = dataset.apart_urls()    #Comenta esta linea si ya tienes un archivo url.json en este directorio
+    #with open('urls.json','w') as jsonfile:
+        #json.dump(res,jsonfile)
+    #jsonfile.close()
     #Generamos el dataset de informacion de apartamentos
     #------
     with open('urls.json','r') as jsonfile:
         data=json.load(jsonfile)
-    version=2
-    result=dataset.apart_info(version=version,data=data)
-    result.to_csv(f'DatasetAirbnb_v{version}.csv',index=False)
+    version=3
+    #result=dataset.apart_info(version=version,data=data)
+    #result.to_csv(f'DatasetAirbnb_v{version}.csv',index=False)
 
     #Generamos el dataset de comentarios
     #-------
